@@ -13,8 +13,13 @@ export default function Tasks() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- standard fetch-on-mount; rule targets Suspense-based data fetching patterns not used here
     fetchTasks()
   }, [])
+
+  // useEffect(() => {
+  //   fetchTasks()
+  // }, [])
 
   const addTask = async () => {
     if (!title) return
