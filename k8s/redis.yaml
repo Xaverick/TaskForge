@@ -100,7 +100,7 @@ spec:
         name: redis-data
       spec:
         accessModes: ["ReadWriteOnce"]
-        storageClassName: "standard"   # change to your cluster's StorageClass
+        storageClassName: "cinder-sc"   # change to your cluster's StorageClass
         resources:
           requests:
             storage: 1Gi
