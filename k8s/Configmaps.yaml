@@ -1,0 +1,27 @@
+# ─── Auth Service ConfigMap ───────────────────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-service-config
+  namespace: __NS__
+data:
+  PORT: "4000"
+  # mongodb service DNS: <service-name>.<namespace>.svc.cluster.local
+  MONGO_URI: "mongodb://mongodb-0.mongodb-headless.__NS__.svc.cluster.local:27017,mongodb-1.mongodb-headless.__NS__.svc.cluster.local:27017,mongodb-2.mongodb-headless.__NS__.svc.cluster.local:27017/authdb?replicaSet=rs0"
+  NODE_ENV: "production"
+  # comma-separated list of allowed frontend origins
+  ALLOWED_ORIGINS: "http://__HOST__,https://__HOST__"
+
+---
+# ─── Task Service ConfigMap ───────────────────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: task-service-config
+  namespace: __NS__
+data:
+  PORT: "5000"
+  MONGO_URI: "mongodb://mongodb-0.mongodb-headless.__NS__.svc.cluster.local:27017,mongodb-1.mongodb-headless.__NS__.svc.cluster.local:27017,mongodb-2.mongodb-headless.__NS__.svc.cluster.local:27017/taskdb?replicaSet=rs0"
+  REDIS_URL: "redis://redis-master.__NS__.svc.cluster.local:6379"
+  NODE_ENV: "production"
+  ALLOWED_ORIGINS: "http://__HOST__,https://__HOST__"

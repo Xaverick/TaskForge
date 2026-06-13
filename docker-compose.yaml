@@ -1,0 +1,180 @@
+# version: "3.9"
+
+# services:
+#   mongodb:
+#     image: mongo
+#     container_name: mongodb
+#     restart: unless-stopped
+#     volumes:
+#       - mongo_data:/data/db
+#     networks:
+#       - app-network
+
+#   redis:
+#     image: redis
+#     container_name: redis
+#     restart: unless-stopped
+#     networks:
+#       - app-network
+
+#   auth-service:
+#     build: ./backend/auth-service
+#     container_name: auth-service
+#     restart: unless-stopped
+#     depends_on:
+#       - mongodb
+#     environment:
+#       PORT: 4000
+#       MONGO_URI: mongodb://mongodb:27017/
+#       JWT_SECRET: ${JWT_SECRET}
+#     ports:
+#       - "4000:4000" # optional (for testing)
+#     networks:
+#       - app-network
+
+#   task-service:
+#     build: ./backend/task-service
+#     container_name: task-service
+#     restart: unless-stopped
+#     depends_on:
+#       - mongodb
+#       - redis
+#     environment:
+#       PORT: 5000
+#       MONGO_URI: mongodb://mongodb:27017/
+#       JWT_SECRET: ${JWT_SECRET}
+#       REDIS_URL: redis://redis:6379
+#     ports:
+#       - "5000:5000" # optional (for testing)
+#     networks:
+#       - app-network
+
+#   frontend:
+#     build: ./frontend
+#     container_name: frontend
+#     restart: unless-stopped
+#     depends_on:
+#       - auth-service
+#       - task-service 
+#     ports:
+#       - "5173:80"
+#     networks:
+#       - app-network
+
+# networks:
+#   app-network:
+#     driver: bridge
+
+# volumes:
+#   mongo_data:
+
+
+
+
+version: "3.9"
+
+services:
+  # =====================
+  # DATABASES (INTERNAL)
+  # =====================
+  mongodb:
+    image: mongo
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - internal-net
+
+  redis:
+    image: redis
+    restart: unless-stopped
+    networks:
+      - internal-net
+
+  # =====================
+  # BACKEND SERVICES
+  # =====================
+  auth-service:
+    build: ./backend/auth-service
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+    environment:
+      PORT: 4000
+      MONGO_URI: mongodb://mongodb:27017/
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - internal-net
+
+  task-service:
+    build: ./backend/task-service
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+      - redis
+    environment:
+      PORT: 5000
+      MONGO_URI: mongodb://mongodb:27017/
+      JWT_SECRET: ${JWT_SECRET}
+      REDIS_URL: redis://redis:6379
+    networks:
+      - internal-net
+
+  # =====================
+  # BACKEND LOAD BALANCER
+  # =====================
+  backend-lb:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./nginx/backend-lb.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - auth-service
+      - task-service
+    networks:
+      - backend-net
+      - internal-net
+
+  # =====================
+  # FRONTEND APP
+  # =====================
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend-lb
+    networks:
+      - frontend-net
+      - backend-net
+
+  # =====================
+  # FRONTEND LOAD BALANCER
+  # =====================
+  frontend-lb:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./nginx/frontend-lb.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "5173:80"
+    depends_on:
+      - frontend
+    networks:
+      - public-net
+      - frontend-net
+      - backend-net   #
+
+# =====================
+# NETWORKS
+# =====================
+networks:
+  public-net:
+  frontend-net:
+  backend-net:
+  internal-net:
+
+# =====================
+# VOLUMES
+# =====================
+volumes:
+  mongo_data:
