@@ -191,7 +191,7 @@ pipeline {
             steps {
                 sh '''
                     sed "s/__NS__/${K8S_NAMESPACE}/g; s/__HOST__/${APP_HOST}/g" \
-                        k8s/configmaps/configmaps.yaml | kubectl apply -f -
+                        k8s/configmaps.yaml | kubectl apply -f -
                 '''
             }
         }
@@ -204,10 +204,10 @@ pipeline {
             steps {
                 sh '''
                     echo "=== Deploying MongoDB StatefulSet ==="
-                    sed "s/__NS__/${K8S_NAMESPACE}/g" k8s/statefulsets/mongodb.yaml | kubectl apply -f -
+                    sed "s/__NS__/${K8S_NAMESPACE}/g" k8s/mongodb.yaml | kubectl apply -f -
 
                     echo "=== Deploying Redis StatefulSet ==="
-                    sed "s/__NS__/${K8S_NAMESPACE}/g" k8s/statefulsets/redis.yaml | kubectl apply -f -
+                    sed "s/__NS__/${K8S_NAMESPACE}/g" k8s/redis.yaml | kubectl apply -f -
 
                     echo "=== Waiting for MongoDB pods ==="
                     kubectl rollout status statefulset/mongodb --namespace=${K8S_NAMESPACE} --timeout=240s
@@ -228,7 +228,7 @@ pipeline {
             steps {
                 sh '''
                     # Services (ClusterIP for auth/task/frontend)
-                    sed "s/__NS__/${K8S_NAMESPACE}/g" k8s/services/services.yaml | kubectl apply -f -
+                    sed "s/__NS__/${K8S_NAMESPACE}/g" k8s/services.yaml | kubectl apply -f -
 
                     # Deployments — substitute namespace, image repo, and tag
                     for svc in auth-service task-service frontend; do
@@ -240,10 +240,10 @@ pipeline {
 
                     # Ingress
                     sed "s/__NS__/${K8S_NAMESPACE}/g; s/__HOST__/${APP_HOST}/g" \
-                        k8s/ingress/ingress.yaml | kubectl apply -f -
+                        k8s/ingress.yaml | kubectl apply -f -
 
                     # HPA (requires metrics-server)
-                    sed "s/__NS__/${K8S_NAMESPACE}/g" k8s/hpa/hpa.yaml | kubectl apply -f - || \
+                    sed "s/__NS__/${K8S_NAMESPACE}/g" k8s/hpa.yaml | kubectl apply -f - || \
                         echo "HPA apply failed — metrics-server may not be installed (non-fatal)"
                 '''
             }
