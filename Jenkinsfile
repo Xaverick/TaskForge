@@ -235,7 +235,7 @@ pipeline {
                         sed "s/__NS__/${K8S_NAMESPACE}/g; \
                              s|IMAGE_TAG|${IMAGE_TAG}|g; \
                              s|<GITHUB_USERNAME>|${GITHUB_USERNAME}|g" \
-                            k8s/deployments/${svc}.yaml | kubectl apply -f -
+                            k8s/${svc}.yaml | kubectl apply -f -
                     done
 
                     # Ingress
